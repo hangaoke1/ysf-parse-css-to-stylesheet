@@ -1,3 +1,34 @@
+:root {
+  --ysf-primary-color: #ffff00;
+  --ysf-primary-color-hover: #ff0000;
+}
 .a {
-  box-shadow: 0px 0px rgba(0, 0, 0, 0.04);
+  color: #000000;
+}
+
+.b {
+  color: #337eff;
+}
+
+.b {
+  background-color: #337eff;
+}
+
+.c {
+  display: flex;
+  color: var(--ysf-primary-color);
+  padding: env(safe-area-inset-top);
+}
+
+
+.w-\[300px\] {
+  width: 300px
+}
+
+.bg-\[rgba\(0\2c 0\2c 0\2c 50\%\)\] {
+  background-color: rgba(0,0,0,50%);
+}
+
+.bg-\[rgba\(0\2c 0\2c 0\2c 0\.5\)\] {
+  background-color: rgba(0,0,0,0.5);
 }

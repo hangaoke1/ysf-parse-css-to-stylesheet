@@ -201,6 +201,11 @@ pub fn split_selector(selector: &str) -> Vec<TSelector> {
 
 // 分割类名 .a.b.c => ["a", "b", "c"]
 fn split_classes(input: &str) -> TSelector {
+  // FEATURE: 如果 input 字符串包含 [ 表示为 tailwind.css 动态类名
+  if input.contains('[') {
+    return TSelector::String(input[1..].to_string());
+  }
+
   let mut matches = Vec::new();
   let mut current_class = String::new();
   for char in input.chars() {

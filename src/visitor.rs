@@ -1,4 +1,4 @@
-
+use regex::Regex as RegexG;
 use std::{
   cell::RefCell, collections::{BTreeMap, HashMap}, hash::{Hash, Hasher}, rc::Rc, vec
 };
@@ -18,7 +18,7 @@ use swc_core::{
 use swc_core::ecma::ast::*;
 
 use crate::{
-  constants::{CALC_STATIC_STYLE, COMBINE_NESTING_STYLE, CONVERT_STYLE_PX_FN, ENV_FUN, HM_STYLE, INNER_STYLE, INNER_STYLE_DATA, NESTING_STYLE, NESTINT_STYLE_DATA, RN_CONVERT_STYLE_PX_FN, RN_CONVERT_STYLE_VU_FN, SUPPORT_PSEUDO_KEYS}, scraper::Element, style_parser::StyleValue, style_propetries::{style_value_type::StyleValueType, traits::ToStyleValue, unit::{Platform, PropertyTuple}}, utils::{
+  constants::{CALC_STATIC_STYLE, COMBINE_NESTING_STYLE, CONVERT_STYLE_PX_FN, ENV_FUN, VAR_FUN, HM_STYLE, INNER_STYLE, INNER_STYLE_DATA, NESTING_STYLE, NESTINT_STYLE_DATA, RN_CONVERT_STYLE_PX_FN, RN_CONVERT_STYLE_VU_FN, SUPPORT_PSEUDO_KEYS}, scraper::Element, style_parser::StyleValue, style_propetries::{style_value_type::StyleValueType, traits::ToStyleValue, unit::{Platform, PropertyTuple}}, utils::{
     create_qualname, get_callee_attributes, is_starts_with_uppercase, prefix_style_key, recursion_jsx_member, split_selector, TSelector
   }
 };
@@ -425,6 +425,12 @@ pub fn insert_import_module_decl(module: &mut Module, last_import_index: usize, 
               local: Ident::new(ENV_FUN.into(), DUMMY_SP),
               imported: None,
               is_type_only: false,
+            }),
+            ImportSpecifier::Named(ImportNamedSpecifier {
+              span: DUMMY_SP,
+              local: Ident::new(VAR_FUN.into(), DUMMY_SP),
+              imported: None,
+              is_type_only: false,
             })
           ],
           src: Box::new(Str::from("@tarojs/runtime")),
@@ -649,7 +655,7 @@ impl VisitMut for ModuleMutVisitor {
 
       // 判断是否嵌套样式
       if self.platform == Platform::Harmony {
-        if insert_key.contains(" ") || insert_key.chars().filter(|&c| c == '.').count() > 1 {
+        if insert_key.contains(" ") || (insert_key.chars().filter(|&c| c == '.').count() > 1 && !insert_key.contains("[")) {
           // 拆分选择器字符串，安装' ' 或 '>' 拆分，如：container > wrapper item => ['container', '>', 'wrapper', ' ', 'item']
           let selectors = split_selector(insert_key.as_str());
 
@@ -665,7 +671,15 @@ impl VisitMut for ModuleMutVisitor {
         }
       }
 
-      let _key = insert_key.replace(".", "");
+      // FEATURE: 将前一个字符不是数字的.替换成空字符串，使用 replace
+      let _key= if insert_key.contains('[') {
+        // 删除第一个字符 
+         insert_key[1..].to_string()
+      } else {
+         insert_key.replace(".", "")
+      };
+
+
       if let Some(props) = final_style_entries.get(_key.as_str()) {
         let mut new_insert_value = props.clone();
         new_insert_value.extend(insert_value);

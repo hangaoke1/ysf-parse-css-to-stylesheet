@@ -5,6 +5,6 @@ import './pesudo.scss'
 export default function Pesudo() {
   return <View>
     <View className='a' compileMode></View>
-    <View className='a'></View>
+    <View className='a bg-[rgba(0,0,0,0.5)]'></View>
   </View>
 }

@@ -58,9 +58,11 @@ impl<'i> Visitor<'i> for StyleVisitor<'i> {
       // 属性规则收集
       CssRule::Style(style) => {
         let selectors_str = style.selectors.to_string();
-        let selectors: Vec<&str> = selectors_str.split(",").collect::<Vec<&str>>();
+        // FEATURE: 按照,分割选择器，且保证,前面不是转义字符，以支持 tailwind.css 动态类名
+        let selectors: Vec<&str> = selectors_str.split("(?<!\\\\),").collect::<Vec<&str>>();
         for index in 0..selectors.len() {
-          let selector = selectors[index].trim().to_string();
+          // FEATURE: 优化 key 的生成 移除 key 中的 \\ 转义，以支持 tailwind.css 动态类名匹配
+          let selector = selectors[index].trim().to_string().replace("\\", "");
           let mut all_style = self.all_style.borrow_mut();
           let decorations = all_style.iter_mut().find(|(id, _)| id == &selector);
           if let Some((_, declarations)) = decorations {
@@ -191,7 +193,8 @@ impl<'i> StyleParser<'i> {
       })
       .collect::<Vec<(_, _)>>(); // Specify the lifetime of the tuple elements to match the input data
       // 判断是否含有嵌套选择器
-      if selector.contains(" ") || selector.chars().filter(|&c| c == '.').count() > 1 {
+      // FEATURE: 此处会误判，比如 tailwind 动态样式中 bg-[rgba(0,0,0,0.5)]
+      if selector.contains(" ") || (selector.chars().filter(|&c| c == '.').count() > 1 && !selector.contains("[")) {
         has_nesting = true
       }
       final_all_style.push((selector.to_owned(), properties));

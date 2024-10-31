@@ -52,5 +52,5 @@
     "version": "napi version  && conventional-changelog -p angular -i CHANGELOG.md -s && git add CHANGELOG.md"
   },
   "packageManager": "yarn@3.6.4",
-  "repository": "https://github.com/NervJS/parse-css-to-stylesheet"
+  "repository": "https://github.com/hangaoke1/ysf-parse-css-to-stylesheet"
 }

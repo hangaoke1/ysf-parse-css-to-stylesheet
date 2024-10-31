@@ -7,7 +7,7 @@
 ## 使用方式
 
 ```typescript
-import { parse } from '@tarojs/parse-css-to-stylesheet'
+import { parse } from 'ysf-parse-css-to-stylesheet'
 
 // Harmony
 const { code } = parse(jsxCode, [cssCode1, cssCode2, ...], {

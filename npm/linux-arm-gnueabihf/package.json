@@ -1,6 +1,6 @@
 {
   "name": "ysf-parse-css-to-stylesheet-linux-arm-gnueabihf",
-  "version": "0.0.69",
+  "version": "0.0.70-beta.0",
   "os": [
     "linux"
   ],

@@ -1,5 +1,5 @@
 {
-  "name": "@tarojs/parse-css-to-stylesheet-win32-ia32-msvc",
+  "name": "ysf-parse-css-to-stylesheet-win32-ia32-msvc",
   "version": "0.0.64",
   "os": [
     "win32"

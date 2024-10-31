@@ -1,3 +1,3 @@
-# `@tarojs/parse-css-to-stylesheet-android-arm-eabi`
+# `ysf-parse-css-to-stylesheet-android-arm-eabi`
 
-This is the **armv7-linux-androideabi** binary for `@tarojs/parse-css-to-stylesheet`
+This is the **armv7-linux-androideabi** binary for `ysf-parse-css-to-stylesheet`

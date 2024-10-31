@@ -1,5 +1,5 @@
 {
-  "name": "@tarojs/parse-css-to-stylesheet-linux-arm-gnueabihf",
+  "name": "ysf-parse-css-to-stylesheet-linux-arm-gnueabihf",
   "version": "0.0.69",
   "os": [
     "linux"

@@ -1,3 +1,3 @@
-# `@tarojs/parse-css-to-stylesheet-win32-x64-msvc`
+# `ysf-parse-css-to-stylesheet-win32-x64-msvc`
 
-This is the **x86_64-pc-windows-msvc** binary for `@tarojs/parse-css-to-stylesheet`
+This is the **x86_64-pc-windows-msvc** binary for `ysf-parse-css-to-stylesheet`

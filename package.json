@@ -1,5 +1,5 @@
 {
-  "name": "@tarojs/parse-css-to-stylesheet",
+  "name": "ysf-parse-css-to-stylesheet",
   "version": "0.0.69",
   "main": "index.js",
   "types": "index.d.ts",

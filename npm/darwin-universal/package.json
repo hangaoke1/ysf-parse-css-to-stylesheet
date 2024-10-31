@@ -1,5 +1,5 @@
 {
-  "name": "@tarojs/parse-css-to-stylesheet-darwin-universal",
+  "name": "ysf-parse-css-to-stylesheet-darwin-universal",
   "version": "0.0.69",
   "os": [
     "darwin"

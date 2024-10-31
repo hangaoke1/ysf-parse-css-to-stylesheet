@@ -1,5 +1,5 @@
 {
-  "name": "@tarojs/parse-css-to-stylesheet-linux-x64-musl",
+  "name": "ysf-parse-css-to-stylesheet-linux-x64-musl",
   "version": "0.0.69",
   "os": [
     "linux"
@@ -15,8 +15,8 @@
   "engines": {
     "node": ">= 10"
   },
+  "repository": "https://github.com/NervJS/parse-css-to-stylesheet",
   "libc": [
     "musl"
-  ],
-  "repository": "https://github.com/NervJS/parse-css-to-stylesheet"
+  ]
 }

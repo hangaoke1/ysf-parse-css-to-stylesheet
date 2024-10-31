@@ -134,16 +134,18 @@ pub struct StyleParser<'i> {
   pub all_style: Rc<RefCell<Vec<(String, Vec<StyleDeclaration<'i>>)>>>,
   pub keyframes: Rc<RefCell<HashMap<String, Vec<KeyFrameItem>>>>,
   pub document: &'i JSXDocument,
-  pub platform: Platform
+  pub platform: Platform,
+  pub is_entry: bool
 }
 
 impl<'i> StyleParser<'i> {
-  pub fn new(document: &'i JSXDocument, platform:Platform) -> Self {
+  pub fn new(document: &'i JSXDocument, platform:Platform, is_entry: bool) -> Self {
     StyleParser {
       all_style: Rc::new(RefCell::new(vec![])),
       keyframes: Rc::new(RefCell::new(HashMap::new())),
       document,
-      platform
+      platform,
+      is_entry
     }
   }
 

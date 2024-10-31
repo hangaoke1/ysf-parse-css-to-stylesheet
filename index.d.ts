@@ -5,6 +5,7 @@
 
 export interface ParseOptions {
   platformString: string
+  isEntry: boolean
 }
 export interface ParseResult {
   code: string

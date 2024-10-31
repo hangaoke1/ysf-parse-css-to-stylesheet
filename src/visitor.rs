@@ -18,7 +18,7 @@ use swc_core::{
 use swc_core::ecma::ast::*;
 
 use crate::{
-  constants::{CALC_STATIC_STYLE, COMBINE_NESTING_STYLE, CONVERT_STYLE_PX_FN, ENV_FUN, VAR_FUN, HM_STYLE, INNER_STYLE, INNER_STYLE_DATA, NESTING_STYLE, NESTINT_STYLE_DATA, RN_CONVERT_STYLE_PX_FN, RN_CONVERT_STYLE_VU_FN, SUPPORT_PSEUDO_KEYS}, scraper::Element, style_parser::StyleValue, style_propetries::{style_value_type::StyleValueType, traits::ToStyleValue, unit::{Platform, PropertyTuple}}, utils::{
+  constants::{CALC_STATIC_STYLE, COMBINE_NESTING_STYLE, CONVERT_STYLE_PX_FN, ENV_FUN, VAR_FUN, GLOBAL_SHARED, HM_STYLE, INNER_STYLE, INNER_STYLE_DATA, NESTING_STYLE, NESTINT_STYLE_DATA, RN_CONVERT_STYLE_PX_FN, RN_CONVERT_STYLE_VU_FN, SUPPORT_PSEUDO_KEYS}, scraper::Element, style_parser::StyleValue, style_propetries::{style_value_type::StyleValueType, traits::ToStyleValue, unit::{Platform, PropertyTuple}}, utils::{
     create_qualname, get_callee_attributes, is_starts_with_uppercase, prefix_style_key, recursion_jsx_member, split_selector, TSelector
   }
 };
@@ -431,6 +431,12 @@ pub fn insert_import_module_decl(module: &mut Module, last_import_index: usize, 
               local: Ident::new(VAR_FUN.into(), DUMMY_SP),
               imported: None,
               is_type_only: false,
+            }),
+            ImportSpecifier::Named(ImportNamedSpecifier {
+              span: DUMMY_SP,
+              local: Ident::new(GLOBAL_SHARED.into(), DUMMY_SP),
+              imported: None,
+              is_type_only: false,
             })
           ],
           src: Box::new(Str::from("@tarojs/runtime")),
@@ -447,15 +453,17 @@ pub struct ModuleMutVisitor {
   pub all_style: Rc<RefCell<HashMap<String, StyleValue>>>,
   pub platform: Platform,
   pub is_enable_nesting: bool,
+  pub is_entry: bool,
 }
 
 impl ModuleMutVisitor {
   pub fn new(
     all_style: Rc<RefCell<HashMap<String, StyleValue>>>, 
     platform: Platform, 
-    is_enable_nesting: bool
+    is_enable_nesting: bool,
+    is_entry: bool
   ) -> Self {
-    ModuleMutVisitor { all_style, platform, is_enable_nesting }
+    ModuleMutVisitor { all_style, platform, is_enable_nesting, is_entry }
   }
 }
 
@@ -611,6 +619,7 @@ impl VisitMut for ModuleMutVisitor {
   noop_visit_mut_type!();
 
   fn visit_mut_module(&mut self, module: &mut Module) {
+    // println!("visit_mut_module {:?}", self.platform);
     let binding = self.all_style.borrow_mut();
     let style_entries: BTreeMap<_, _> = binding.iter().collect();
 
@@ -766,7 +775,7 @@ impl VisitMut for ModuleMutVisitor {
   
     let mut var_checker = VarChecker { found: false };
     module.visit_with(&mut var_checker);
-    if var_checker.found {
+    if var_checker.found || self.is_entry {
       let style_object = Box::new(Expr::Object(ObjectLit {
         span: DUMMY_SP,
         props: final_style_entries
@@ -784,19 +793,26 @@ impl VisitMut for ModuleMutVisitor {
           .into(),
       }));
 
-      let (identifier, style_func) = generate_stylesheet(INNER_STYLE.to_string(), INNER_STYLE_DATA.to_string(), style_object);
-      // 插入代码 let __inner_style_data__;
-      module.body.insert(last_import_index, ModuleItem::Stmt(identifier));
-      last_import_index += 1;
-      // 插入代码 function __inner_style__() { ... }
-      module
-        .body
-        .insert(last_import_index, ModuleItem::Stmt(style_func));
+      if self.is_entry {
+        // 入口文件注入全局公共样式
+        // 插入代码 Taro.__inner_style__= { ... }
+        let common_inner_style = generate_common_stylesheet(INNER_STYLE.to_string(), style_object.clone());
+        module.body.insert(last_import_index, ModuleItem::Stmt(common_inner_style));
+        last_import_index += 1;
+      } else {
+        let (identifier, style_func) = generate_stylesheet(INNER_STYLE.to_string(), INNER_STYLE_DATA.to_string(), style_object.clone());
+        // 插入代码 let __inner_style_data__;
+        module.body.insert(last_import_index, ModuleItem::Stmt(identifier));
+        last_import_index += 1;
+        // 插入代码 function __inner_style__() { ... }
+        module
+          .body
+          .insert(last_import_index, ModuleItem::Stmt(style_func));
+      }
     }
 
     if self.is_enable_nesting {
       // 插入嵌套样式
-
       let mut nestings = nesting_style_entries.into_iter().collect::<Vec<(String, (Vec<TSelector>, Vec<PropOrSpread>))>>();
       // 根据类的数量进行权重排序
       nestings.sort_by(|a, b| {
@@ -853,21 +869,28 @@ impl VisitMut for ModuleMutVisitor {
           .into(),
     }));
 
-    let (identifier, style_func) = generate_stylesheet(NESTING_STYLE.to_string(), NESTINT_STYLE_DATA.to_string(), nesting_style_object);
-    // 插入代码 let __inner_style_data__;
-    module.body.insert(last_import_index, ModuleItem::Stmt(identifier));
-    last_import_index += 1;
-    // 插入代码 function __inner_style__() { ... }
-    module
-      .body
-      .insert(last_import_index, ModuleItem::Stmt(style_func))
+    if self.is_entry {
+      // 插入代码 Taro.__nesting_style__= { ... }
+      let common_inner_style = generate_common_stylesheet(NESTING_STYLE.to_string(), nesting_style_object.clone());
+      module.body.insert(last_import_index, ModuleItem::Stmt(common_inner_style));
+    } else {
+      let (identifier, style_func) = generate_stylesheet(NESTING_STYLE.to_string(), NESTINT_STYLE_DATA.to_string(), nesting_style_object);
+      // 插入代码 let __nesting_style_data__;
+      module.body.insert(last_import_index, ModuleItem::Stmt(identifier));
+      last_import_index += 1;
+      // 插入代码 function __nesting_style__() { ... }
+      module
+        .body
+        .insert(last_import_index, ModuleItem::Stmt(style_func))
+    }
+
     }
   }
 }
 
 fn generate_stylesheet(fn_name: String, fn_data_name: String, style_object: Box<Expr>) -> (Stmt, Stmt) {
 
-  let ident  = Ident::new(fn_data_name.into(), DUMMY_SP);
+  let ident  = Ident::new(fn_data_name.clone().into(), DUMMY_SP);
 
   let identifier = Stmt::Decl(Decl::Var(Box::new(VarDecl {
     span: DUMMY_SP,
@@ -909,7 +932,35 @@ fn generate_stylesheet(fn_name: String, fn_data_name: String, style_object: Box<
                   id: ident.clone(),
                   type_ann: None
                 })),
-                right: style_object
+                right: Box::new(Expr::Object(ObjectLit {
+                  span: DUMMY_SP,
+                  props: vec![
+                    PropOrSpread::Spread(SpreadElement {
+                      dot3_token: DUMMY_SP,
+                      // ...__global_shared__.__inner_style__?.()
+                      expr: Box::new(Expr::OptChain(OptChainExpr {
+                        span: DUMMY_SP,
+                        optional: true,
+                        base: Box::new(OptChainBase::Call(OptCall {
+                          span: DUMMY_SP,
+                          callee: Box::new(Expr::Member(
+                            MemberExpr {
+                              span: DUMMY_SP,
+                              obj: Box::new(Expr::Ident(Ident::new(GLOBAL_SHARED.into(), DUMMY_SP))),
+                              prop: MemberProp::Ident(Ident::new(fn_name.clone().into(), DUMMY_SP)),
+                            }
+                          )),
+                          args: vec![],
+                          type_args: None
+                        }))
+                      })),
+                    }),
+                    PropOrSpread::Spread(SpreadElement {
+                      dot3_token: DUMMY_SP,
+                      expr: style_object
+                    })
+                  ]
+                }))
               })
             )
           }
@@ -949,6 +1000,51 @@ fn generate_stylesheet(fn_name: String, fn_data_name: String, style_object: Box<
     identifier,
     inner_style_func
   )
+}
+
+
+// 挂载全局入口样式
+fn generate_common_stylesheet(attr_name: String, style_object: Box<Expr>) -> Stmt {
+  let common_inner_style = Stmt::Expr(
+    ExprStmt {
+      span: DUMMY_SP,
+      expr: Box::new(
+        Expr::Assign(AssignExpr { span: DUMMY_SP, op: AssignOp::Assign, 
+          left: AssignTarget::Simple(SimpleAssignTarget::Member(MemberExpr {
+            span: DUMMY_SP,
+            obj: Box::new(Expr::Ident(Ident::new(GLOBAL_SHARED.into(), DUMMY_SP))),
+            prop: MemberProp::Ident(Ident {
+              span: DUMMY_SP,
+              sym: attr_name.into(),
+              optional: false,
+            }),
+          })),
+          // () => return { ... }
+          right: Box::new(Expr::Arrow(ArrowExpr {
+            span: DUMMY_SP,
+            body: Box::new(BlockStmtOrExpr::BlockStmt(
+              BlockStmt {
+                span: DUMMY_SP,
+                stmts: vec![
+                  Stmt::Return(ReturnStmt {
+                    span: DUMMY_SP,
+                    arg: Some(style_object)
+                  })
+                ]
+              }
+            )),
+            params: vec![],
+            is_async: false,
+            is_generator: false,
+            type_params: None,
+            return_type: None
+          }))
+        })
+      )
+    }
+  );
+
+  common_inner_style
 }
 
 

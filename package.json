@@ -51,18 +51,5 @@
     "version": "napi version  && conventional-changelog -p angular -i CHANGELOG.md -s && git add CHANGELOG.md"
   },
   "packageManager": "yarn@3.6.4",
-  "repository": "https://github.com/NervJS/parse-css-to-stylesheet",
-  "optionalDependencies": {
-    "ysf-parse-css-to-stylesheet-win32-x64-msvc": "0.0.70-beta.0",
-    "ysf-parse-css-to-stylesheet-darwin-x64": "0.0.70-beta.0",
-    "ysf-parse-css-to-stylesheet-linux-x64-gnu": "0.0.70-beta.0",
-    "ysf-parse-css-to-stylesheet-darwin-arm64": "0.0.70-beta.0",
-    "ysf-parse-css-to-stylesheet-android-arm64": "0.0.70-beta.0",
-    "ysf-parse-css-to-stylesheet-linux-arm64-gnu": "0.0.70-beta.0",
-    "ysf-parse-css-to-stylesheet-linux-arm64-musl": "0.0.70-beta.0",
-    "ysf-parse-css-to-stylesheet-linux-arm-gnueabihf": "0.0.70-beta.0",
-    "ysf-parse-css-to-stylesheet-linux-x64-musl": "0.0.70-beta.0",
-    "ysf-parse-css-to-stylesheet-android-arm-eabi": "0.0.70-beta.0",
-    "ysf-parse-css-to-stylesheet-darwin-universal": "0.0.70-beta.0"
-  }
+  "repository": "https://github.com/NervJS/parse-css-to-stylesheet"
 }

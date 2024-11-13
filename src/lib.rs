@@ -49,7 +49,7 @@ pub fn parse(component: String, styles: Vec<String>, options: ParseOptions) -> P
     _ => Platform::Harmony
   };
 
-  let is_entry = options.is_entry;
+  let is_entry = options.is_entry || false;
 
   let mut is_enable_nesting = true;
 

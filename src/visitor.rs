@@ -1,4 +1,3 @@
-use regex::Regex as RegexG;
 use std::{
   cell::RefCell, collections::{BTreeMap, HashMap}, hash::{Hash, Hasher}, rc::Rc, vec
 };
@@ -18,8 +17,8 @@ use swc_core::{
 use swc_core::ecma::ast::*;
 
 use crate::{
-  constants::{CALC_STATIC_STYLE, COMBINE_NESTING_STYLE, CONVERT_STYLE_PX_FN, ENV_FUN, VAR_FUN, GLOBAL_SHARED, HM_STYLE, INNER_STYLE, INNER_STYLE_DATA, NESTING_STYLE, NESTINT_STYLE_DATA, RN_CONVERT_STYLE_PX_FN, RN_CONVERT_STYLE_VU_FN, SUPPORT_PSEUDO_KEYS}, scraper::Element, style_parser::StyleValue, style_propetries::{style_value_type::StyleValueType, traits::ToStyleValue, unit::{Platform, PropertyTuple}}, utils::{
-    create_qualname, get_callee_attributes, is_starts_with_uppercase, prefix_style_key, recursion_jsx_member, split_selector, TSelector
+  constants::{CALC_STATIC_STYLE, COMBINE_NESTING_STYLE, CONVERT_STYLE_PX_FN, ENV_FUN, GLOBAL_SHARED, HM_STYLE, INNER_STYLE, INNER_STYLE_DATA, NESTING_STYLE, NESTINT_STYLE_DATA, RN_CONVERT_STYLE_PX_FN, RN_CONVERT_STYLE_VU_FN, SUPPORT_PSEUDO_KEYS, VAR_FUN}, scraper::Element, style_parser::StyleValue, style_propetries::{style_value_type::StyleValueType, traits::ToStyleValue, unit::{Platform, PropertyTuple}}, utils::{
+    create_qualname, get_callee_attributes, is_starts_with_uppercase, is_tailwind_arbitrary, prefix_style_key, recursion_jsx_member, split_selector, TSelector
   }
 };
 
@@ -680,12 +679,11 @@ impl VisitMut for ModuleMutVisitor {
         }
       }
 
-      // FEATURE: 将前一个字符不是数字的.替换成空字符串，使用 replace
-      let _key= if insert_key.contains('[') {
-        // 删除第一个字符 
-         insert_key[1..].to_string()
+      let _key= if is_tailwind_arbitrary(insert_key.as_str()) {
+        // 如果是 tailwindcss 的任意类，进行如下转换 例如：.bg-[rgba(0,0,0,0.5)] => bg-[rgba(0,0,0,0.5)] , .w-[100px] => w-[100px]
+        insert_key[1..].to_string()
       } else {
-         insert_key.replace(".", "")
+        insert_key.replace(".", "")
       };
 
 

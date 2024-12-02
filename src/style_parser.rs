@@ -2,7 +2,7 @@ use std::{rc::Rc, cell::RefCell, convert::Infallible, collections::HashMap, hash
 
 use lightningcss::{declaration::DeclarationBlock, properties::Property, rules::{keyframes::KeyframeSelector, CssRule}, stylesheet::{ParserOptions, PrinterOptions, StyleSheet}, traits::ToCss, visit_types, visitor::{Visit, VisitTypes, Visitor}};
 
-use crate::{constants::SUPPORT_PSEUDO_KEYS, document::JSXDocument, style_propetries::{style_value_type::StyleValueType, unit::Platform}, utils::to_camel_case, visitor::SpanKey};
+use crate::{constants::SUPPORT_PSEUDO_KEYS, document::JSXDocument, style_propetries::{style_value_type::StyleValueType, unit::Platform}, utils::{is_tailwind_arbitrary, to_camel_case}, visitor::SpanKey};
 
 use super::parse_style_properties::parse_style_properties;
 
@@ -196,7 +196,7 @@ impl<'i> StyleParser<'i> {
       .collect::<Vec<(_, _)>>(); // Specify the lifetime of the tuple elements to match the input data
       // 判断是否含有嵌套选择器
       // FEATURE: 此处会误判，比如 tailwind 动态样式中 bg-[rgba(0,0,0,0.5)]
-      if selector.contains(" ") || (selector.chars().filter(|&c| c == '.').count() > 1 && !selector.contains("[")) {
+      if selector.contains(" ") || (selector.chars().filter(|&c| c == '.').count() > 1 && !is_tailwind_arbitrary(&selector)) {
         has_nesting = true
       }
       final_all_style.push((selector.to_owned(), properties));

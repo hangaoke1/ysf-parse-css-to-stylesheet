@@ -1,5 +1,11 @@
 .a {
   box-shadow: 0px 0px rgba(0, 0, 0, 0.04);
+  transform: translate(0, 0) rotate(0) skewX(0) skewY(0) scaleX(1) scaleY(1);
+  color: var(--primary-color);
+}
+
+.gap-4 {
+  gap: 16px;
 }
 
 .w-\[300px\] {

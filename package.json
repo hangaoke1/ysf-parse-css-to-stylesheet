@@ -1,6 +1,6 @@
 {
   "name": "ysf-parse-css-to-stylesheet",
-  "version": "0.0.70-beta.0",
+  "version": "0.0.70-beta.1",
   "description": "parse css to stylesheet",
   "main": "index.js",
   "types": "index.d.ts",
